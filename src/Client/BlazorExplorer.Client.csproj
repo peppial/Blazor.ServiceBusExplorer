@@ -16,7 +16,16 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="7.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="7.0.1" PrivateAssets="all" />
-    <PackageReference Include="Blazored.LocalStorage" Version="4.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Shared\BlazorExplorer.Shared.csproj" />
+    <ProjectReference Include="..\..\BlazorExplorer.Domain\BlazorExplorer.Domain.csproj">
+      <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
+    </ProjectReference>
+    <ProjectReference Include="..\Domain\BlazorExplorer.Domain.csproj">
+      <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
+    </ProjectReference>
   </ItemGroup>
 
   <ItemGroup>
@@ -24,14 +33,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="Blazored.LocalStorage" />
+    <None Remove="Services\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Shared\BlazorExplorer.Shared.csproj">
-      <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
-    </ProjectReference>
-    <ProjectReference Include="..\Domain\BlazorExplorer.Domain.csproj">
-      <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
-    </ProjectReference>
+    <Folder Include="Services\" />
   </ItemGroup>
 </Project>

@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using BlazorExplorer.Shared;
 using BlazorExplorer.Domain.Topics;
-using BlazorExplorer.Domain.Models;
 using Azure;
 using Azure.Messaging.ServiceBus;
 
@@ -18,18 +18,30 @@ public class WeatherForecastController : ControllerBase
     };
 
     private readonly ILogger<WeatherForecastController> _logger;
-    private readonly ITopicService topicService;
+    private readonly ITopic topic;
 
-    public WeatherForecastController(ILogger<WeatherForecastController> logger, ITopicService topicService)
+    public WeatherForecastController(ILogger<WeatherForecastController> logger, ITopic topic)
     {
         _logger = logger;
-        this.topicService = topicService;
+        this.topic = topic;
     }
 
     [HttpGet]
-    public IAsyncEnumerable<Topic> Get(string connectionString)
+    public async IAsyncEnumerable<WeatherForecast> Get(string connectionString)
     {
-        return topicService.GetTopicsAsync(connectionString);
+        List<WeatherForecast> list = new List<WeatherForecast>();
+        var a= topic.GetTopicsAsync(connectionString);
+
+       
+        await foreach(var b in a)
+        {
+            WeatherForecast wf = new WeatherForecast
+            {
+                Summary = b.Name
+            };
+            
+            yield return wf;
+        }
      }
 }
 

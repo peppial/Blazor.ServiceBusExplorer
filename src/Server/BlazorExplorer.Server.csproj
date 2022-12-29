@@ -14,17 +14,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="Azure.Messaging.ServiceBus" />
+    <ProjectReference Include="..\Client\BlazorExplorer.Client.csproj" />
+    <ProjectReference Include="..\Shared\BlazorExplorer.Shared.csproj" />
+    <ProjectReference Include="..\..\BlazorExplorer.Domain\BlazorExplorer.Domain.csproj">
+      <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
+    </ProjectReference>
   </ItemGroup>
+
+
   <ItemGroup>
-    <ProjectReference Include="..\Domain\BlazorExplorer.Domain.csproj">
-      <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
-    </ProjectReference>
-    <ProjectReference Include="..\Client\BlazorExplorer.Client.csproj">
-      <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
-    </ProjectReference>
-    <ProjectReference Include="..\Shared\BlazorExplorer.Shared.csproj">
-      <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
-    </ProjectReference>
+    <None Remove="Azure.Messaging.ServiceBus" />
   </ItemGroup>
 </Project>
