@@ -1,8 +1,7 @@
 ﻿@page "/fetchdata"
-@using BlazorExplorer.Shared
 @using System.Text.Json;
 @inject HttpClient Http
-@inject StateContainer StateContainer
+@inject ILocalStorageService localStorage
 
 <PageTitle>Weather forecast</PageTitle>
 
@@ -29,10 +28,8 @@ else
             @foreach (var forecast in forecasts)
             {
                 <tr>
-                    <td>@forecast.Date.ToShortDateString()</td>
-                    <td>@forecast.TemperatureC</td>
-                    <td>@forecast.TemperatureF</td>
-                    <td>@forecast.Summary</td>
+                    
+                    <td>@forecast.Name</td>
                 </tr>
             }
         </tbody>
@@ -40,17 +37,20 @@ else
 }
 
 @code {
-    private List<WeatherForecast>? forecasts;
+    private List<Topic>? forecasts;
 
     protected override async Task OnInitializedAsync()
     {
-        forecasts = new List<WeatherForecast>();
+        forecasts = new List<Topic>();
 
 
         StateHasChanged();
 
 
-        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, $"WeatherForecast?connectionString={StateContainer.Property}");
+        string connectionString;
+        connectionString = await localStorage.GetItemAsync<string>(nameof(connectionString));
+
+        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, $"WeatherForecast?connectionString={connectionString}");
         request.SetBrowserResponseStreamingEnabled(true);
 
         using HttpResponseMessage response = await Http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
@@ -59,7 +59,7 @@ else
 
         using Stream responseStream = await response.Content.ReadAsStreamAsync();
 
-        await foreach (WeatherForecast weatherForecast in JsonSerializer.DeserializeAsyncEnumerable<WeatherForecast>(
+        await foreach (Topic topic in JsonSerializer.DeserializeAsyncEnumerable<Topic>(
             responseStream,
             new JsonSerializerOptions
             {
@@ -67,7 +67,7 @@ else
                 DefaultBufferSize = 128
             }))
         {
-            forecasts.Add(weatherForecast);
+            forecasts.Add(topic);
 
             StateHasChanged();
         }

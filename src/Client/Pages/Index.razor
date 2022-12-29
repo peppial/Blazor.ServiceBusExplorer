@@ -1,40 +1,27 @@
 ﻿@page "/"
-@inject StateContainer StateContainer
-@implements IDisposable
+@inject ILocalStorageService localStorage
+
 
 
 <PageTitle>Index</PageTitle>
-
-<h1>Hello, world!</h1>
-
-Welcome to your new app.
-
-<p>
-<p>
-    <textarea @bind="ConnectionString" placeholder="Enter connection string"/>
-</p>
-<button @onclick="ChangePropertyValue">
-    Change the Property from the Nested component
-</button>
-</p>
-
-@code {
-    private string? ConnectionString { get; set; }
+<textarea @bind="connectionString" placeholder="Service bus connection string"></textarea>
 
 
-    protected override void OnInitialized()
-    {
-        ConnectionString = StateContainer.Property;
-        StateContainer.OnChange += StateHasChanged;
+    <button class="btn btn-primary" @onclick="SaveAsync">Save</button>
+
+
+
+    @code {
+        private string connectionString { get; set; } = "";
+        protected override async Task OnInitializedAsync()
+        {
+            connectionString = await localStorage.GetItemAsync<string>(nameof(connectionString));
+        }
+
+        private async Task SaveAsync()
+        {
+            await localStorage.SetItemAsync(nameof(connectionString), connectionString);
+        }
+
     }
 
-    private void ChangePropertyValue()
-    {
-        StateContainer.Property = ConnectionString;
-    }
-
-    public void Dispose()
-    {
-        StateContainer.OnChange -= StateHasChanged;
-    }
-}
