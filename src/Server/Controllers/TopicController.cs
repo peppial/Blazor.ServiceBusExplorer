@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using BlazorExplorer.Shared;
+using BlazorExplorer.Domain;
 using BlazorExplorer.Domain.Topics;
 using Azure;
 using Azure.Messaging.ServiceBus;
@@ -18,17 +18,20 @@ public class WeatherForecastController : ControllerBase
     };
 
     private readonly ILogger<WeatherForecastController> _logger;
-    private readonly ITopic topic;
+    private readonly ITopicService topicService;
 
-    public WeatherForecastController(ILogger<WeatherForecastController> logger, ITopic topic)
+    public WeatherForecastController(ILogger<WeatherForecastController> logger, ITopicService topicService)
     {
         _logger = logger;
-        this.topic = topic;
+        this.topicService = topicService ?? throw new ArgumentNullException(nameof(topicService));
     }
 
     [HttpGet]
-    public async IAsyncEnumerable<WeatherForecast> Get(string connectionString)
+    public async IAsyncEnumerable<object> Get(string connectionString)
     {
+        yield return null;
+
+        /*
         List<WeatherForecast> list = new List<WeatherForecast>();
         var a= topic.GetTopicsAsync(connectionString);
 
@@ -42,6 +45,7 @@ public class WeatherForecastController : ControllerBase
             
             yield return wf;
         }
+        */
      }
 }
 

@@ -1,0 +1,71 @@
+﻿@page "/topics"
+@using System.Text.Json;
+@inject HttpClient Http
+@inject ILocalStorageService localStorage
+
+<PageTitle>Topics</PageTitle>
+
+<h1>Topics</h1>
+
+
+@if (topics == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <MatTable Items="@topics" LoadInitialData="true" Striped="true" RequestApiOnlyOnce="true" AllowSelection="true" RowClass="tester"
+              FilterByColumnName="Title" DebounceMilliseconds="150" class="mat-elevation-z5">
+        <MatTableHeader>
+            <th>Name</th>
+            <th>Status</th>
+            <th>Max Size</th>
+            <th>Enable Partitioning</th>
+            <th>Message TTL(days)</th>
+        </MatTableHeader>
+        <MatTableRow>
+            <td>@context.Name</td>
+            <td>@context.Status</td>
+            <td>@context.MaxSizeInMegabytes</td>
+            <td>@context.EnablePartitioning</td>
+            <td>@context.DefaultMessageTimeToLive.TotalDays</td>
+        </MatTableRow>
+    </MatTable>
+}
+
+@code {
+private List<Topic>? topics;
+
+protected override async Task OnInitializedAsync()
+{
+
+    StateHasChanged();
+
+    string connectionString;
+    connectionString = await localStorage.GetItemAsync<string>(nameof(connectionString));
+
+    HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, $"Topics?connectionString={connectionString}");
+    request.SetBrowserResponseStreamingEnabled(true);
+
+    using HttpResponseMessage response = await Http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+
+    response.EnsureSuccessStatusCode();
+
+    using Stream responseStream = await response.Content.ReadAsStreamAsync();
+
+    await foreach (Topic topic in JsonSerializer.DeserializeAsyncEnumerable<Topic>(
+        responseStream,
+        new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+            DefaultBufferSize = 128
+        }))
+    {
+        (topics ??= new List<Topic>()).Add(topic);
+
+    StateHasChanged();
+    }
+
+    }
+    }
+

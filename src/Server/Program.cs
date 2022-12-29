@@ -1,11 +1,13 @@
-﻿using BlazorExplorer.Domain.Topics;
+﻿using BlazorExplorer.Domain.Subscriptions;
+using BlazorExplorer.Domain.Topics;
 using Microsoft.AspNetCore.ResponseCompression;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddScoped<ITopic, Topic>();
+builder.Services.AddScoped<ITopicService, TopicService>();
+builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 
@@ -25,6 +27,18 @@ else
 
 app.UseHttpsRedirection();
 
+app.MapGet("/Topics",  (ITopicService topicService, string connectionString) =>
+{
+    return topicService.GetTopicsAsync(connectionString);
+})
+.WithName("Topics");
+
+app.MapGet("/Subscriptions", (ISubscriptionService subscriptionService, string connectionString, string topic) =>
+{
+    return subscriptionService.GetSubscriptionsAsync(connectionString, topic);
+})
+.WithName("Subscriptions");
+
 app.UseBlazorFrameworkFiles();
 app.UseStaticFiles();
 
@@ -32,7 +46,7 @@ app.UseRouting();
 
 
 app.MapRazorPages();
-app.MapControllers();
+//app.MapControllers();
 app.MapFallbackToFile("index.html");
 
 app.Run();
