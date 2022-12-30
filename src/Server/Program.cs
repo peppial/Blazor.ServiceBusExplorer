@@ -1,5 +1,6 @@
 ﻿using BlazorExplorer.Domain.Subscriptions;
 using BlazorExplorer.Domain.Topics;
+using BlazorExplorer.Domain.Messages;
 using Microsoft.AspNetCore.ResponseCompression;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,6 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddScoped<ITopicService, TopicService>();
 builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
+builder.Services.AddScoped<IMessageService, MessageService>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 
@@ -38,6 +40,13 @@ app.MapGet("/Subscriptions", (ISubscriptionService subscriptionService, string c
     return subscriptionService.GetSubscriptionsAsync(connectionString, topic);
 })
 .WithName("Subscriptions");
+
+
+app.MapGet("/Messages", (IMessageService messageService, string connectionString, string topic, string subscription) =>
+{
+    return messageService.PeekMessagesAsync(connectionString, topic, subscription);
+})
+.WithName("Messages");
 
 app.UseBlazorFrameworkFiles();
 app.UseStaticFiles();

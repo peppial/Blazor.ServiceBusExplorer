@@ -15,7 +15,8 @@
 else
 {
     <MatTable Items="@topics" LoadInitialData="true" Striped="true" RequestApiOnlyOnce="true" AllowSelection="true" RowClass="tester"
-              FilterByColumnName="Title" DebounceMilliseconds="150" class="mat-elevation-z5">
+              SelectionChanged="TopicChanged" ShowPaging="false"
+              DebounceMilliseconds="150" class="mat-elevation-z5">
         <MatTableHeader>
             <th>Name</th>
             <th>Status</th>
@@ -31,41 +32,134 @@ else
             <td>@context.DefaultMessageTimeToLive.TotalDays</td>
         </MatTableRow>
     </MatTable>
+
+    @if (currentTopic != null)
+    {
+        <MatTable Items="@subscriptions" LoadInitialData="true" Striped="true" RequestApiOnlyOnce="true" AllowSelection="true" RowClass="tester"
+                  SelectionChanged="SubscriptionChanged" ShowPaging="false"
+                  DebounceMilliseconds="150" class="mat-elevation-z5">
+            <MatTableHeader>
+                <th>Name</th>
+                <th>Lock Duration</th>
+                <th>Requires Session</th>
+            </MatTableHeader>
+            <MatTableRow>
+                <td>@context.SubscriptionName</td>
+                <td>@context.LockDuration.TotalMinutes</td>
+                <td>@context.RequiresSession</td>
+            </MatTableRow>
+        </MatTable>
+
+        @if (messages != null)
+        {
+            <MatTable Items="@messages" LoadInitialData="true" Striped="true" RequestApiOnlyOnce="true" AllowSelection="true" RowClass="tester"
+                     ShowPaging="false"
+                      DebounceMilliseconds="150" class="mat-elevation-z5">
+                <MatTableHeader>
+                    <th>Body</th>
+                  </MatTableHeader>
+                <MatTableRow>
+                    <td>@context.Body</td>
+                </MatTableRow>
+            </MatTable>
+
+        }
+    }
 }
 
 @code {
-private List<Topic>? topics;
+    private List<Topic>? topics;
+    private string currentTopic;
+    private string currentSubscription;
+    private List<Subscription>? subscriptions;
+    private List<Message>? messages;
 
-protected override async Task OnInitializedAsync()
-{
-
-    StateHasChanged();
-
-    string connectionString;
-    connectionString = await localStorage.GetItemAsync<string>(nameof(connectionString));
-
-    HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, $"Topics?connectionString={connectionString}");
-    request.SetBrowserResponseStreamingEnabled(true);
-
-    using HttpResponseMessage response = await Http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
-
-    response.EnsureSuccessStatusCode();
-
-    using Stream responseStream = await response.Content.ReadAsStreamAsync();
-
-    await foreach (Topic topic in JsonSerializer.DeserializeAsyncEnumerable<Topic>(
-        responseStream,
-        new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true,
-            DefaultBufferSize = 128
-        }))
+    protected override async Task OnInitializedAsync()
     {
-        (topics ??= new List<Topic>()).Add(topic);
 
-    StateHasChanged();
-    }
+        StateHasChanged();
+
+        string connectionString;
+        connectionString = await localStorage.GetItemAsync<string>(nameof(connectionString));
+
+        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, $"Topics?connectionString={connectionString}");
+        request.SetBrowserResponseStreamingEnabled(true);
+
+        using HttpResponseMessage response = await Http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+
+        response.EnsureSuccessStatusCode();
+
+        using Stream responseStream = await response.Content.ReadAsStreamAsync();
+
+        await foreach (Topic topic in JsonSerializer.DeserializeAsyncEnumerable<Topic>(
+            responseStream,
+            new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                DefaultBufferSize = 128
+            }))
+        {
+            (topics ??= new List<Topic>()).Add(topic);
+
+            StateHasChanged();
+        }
 
     }
+    public async void SubscriptionChanged(object row)
+    {
+        if (row == null)
+        {
+            currentTopic = "";
+        }
+        else
+        {
+            currentSubscription = ((Subscription)row).SubscriptionName;
+            string connectionString = await localStorage.GetItemAsync<string>(nameof(connectionString));
+            messages = await Http.GetFromJsonAsync<List<Message>>($"Messages?connectionString={connectionString}&topic={currentTopic}&subscription={currentSubscription}");
+        }
+
+        this.StateHasChanged();
     }
+    public async void TopicChanged(object row)
+    {
+        if (row == null)
+        {
+            currentTopic = "";
+        }
+        else
+        {
+            currentTopic = ((Topic)row).Name;
+            await LoadSubscriptionsAsync(currentTopic);
+        }
+
+        this.StateHasChanged();
+    }
+
+    private async Task LoadSubscriptionsAsync(string topic)
+    {
+        string connectionString = await localStorage.GetItemAsync<string>(nameof(connectionString));
+
+        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, $"Subscriptions?connectionString={connectionString}&topic={topic}");
+        request.SetBrowserResponseStreamingEnabled(true);
+
+        using HttpResponseMessage response = await Http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+
+        response.EnsureSuccessStatusCode();
+
+        using Stream responseStream = await response.Content.ReadAsStreamAsync();
+
+        await foreach (Subscription subscription in JsonSerializer.DeserializeAsyncEnumerable<Subscription>(
+            responseStream,
+            new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                DefaultBufferSize = 128
+            }))
+        {
+            (subscriptions ??= new List<Subscription>()).Add(subscription);
+
+            StateHasChanged();
+        }
+    }
+}
 

@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using BlazorExplorer;
 using BlazorExplorer.Domain.Topics;
 using BlazorExplorer.Client;
-using BlazorExplorer.Client.Services;
 using Blazored.LocalStorage;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);

@@ -11,9 +11,11 @@
   <ItemGroup>
     <None Remove="Models\" />
     <None Remove="Subscriptions\" />
+    <None Remove="Messages\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Models\" />
     <Folder Include="Subscriptions\" />
+    <Folder Include="Messages\" />
   </ItemGroup>
 </Project>
